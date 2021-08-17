@@ -27,5 +27,5 @@ int main(void)
 {
     /* Loop forever */
 	for(;;);
-	int test = 4; //dunrep
+	int test = 26; //dunrep test
 }
