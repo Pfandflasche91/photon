@@ -27,4 +27,10 @@ int main(void)
 {
     /* Loop forever */
 	for(;;);
+<<<<<<< Upstream, based on origin/maxworld
+=======
+	int test = 26; //dunrep bitte keine unsinnigen kommentare
+	int rupert = 1;
+	int nc =345;
+>>>>>>> 3dc337e mal schauen ob das geht
 }
