@@ -29,4 +29,5 @@ int main(void)
 	for(;;);
 	int test = 26; //dunrep bitte keine unsinnigen kommentare
 	int rupert = 1;
+	int nc =345;
 }
