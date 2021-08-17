@@ -27,7 +27,5 @@ int main(void)
 {
     /* Loop forever */
 	for(;;);
-	int test = 26; //dunrep bitte keine unsinnigen kommentare
-	int rupert = 1;
-	int mainmax = 4;
+
 }
