@@ -18,6 +18,8 @@
  */
 
 #include "stm32f446re.h"
+#include <stdint.h>
+#include "GPIO.h"
 
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
@@ -25,11 +27,18 @@
 
 
 void delayMillis(uint16_t delay);		//delay function
-
 int main(void)
 {
+	GPIO_Handle_t rectangle;
+	rectangle.pGPIOx = GPIOA;
+	rectangle.GPIO_PinConfig.GPIO_PinMode 			= GPIO_PIN0;
+	rectangle.GPIO_PinConfig.GPIO_PinMode 			= GPIO_MODE_OUT;
+	rectangle.GPIO_PinConfig.GPIO_PinSpeed 			= GPIO_SPEED_FAST;
+	rectangle.GPIO_PinConfig.GPIO_PinOPType 		= GPIO_OPTYPE_PP;
+	rectangle.GPIO_PinConfig.GPIO_PinPuPdControl 	= GPIO_NO_PUPD;
+
 	//Clock activate for GPIOA AHB1ENR
-	RCC->AHB1ENR |= 0x00000001U;
+	GPIO_PCLK(GPIOA,ENABLE);
 
 	GPIOA->MODER &= (0xA8000000U);
 	GPIOA->MODER |= 0x00000001;
@@ -55,3 +64,5 @@ void delayMillis(uint16_t delay)
 		}
 	}
 }
+
+

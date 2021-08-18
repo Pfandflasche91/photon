@@ -13,6 +13,14 @@
 
 #include <stdint.h>
 
+
+#define ENABLE 			1
+#define DISABLE 		0
+#define SET 			ENABLE
+#define RESET 			DISABLE
+#define GPIO_PIN_SET 	SET
+#define GPIO_PIN_RESET	RESET
+
 #define FLASH_BASEADDR			0x08000000U
 #define SRAM1_BASEADDR			0x20000000U
 
@@ -39,6 +47,8 @@
 #define GPIOG_BASEADDR			(AHB1PERIPH_BASEADDR + 0x1800UL)
 #define GPIOH_BASEADDR			(AHB1PERIPH_BASEADDR + 0x1C00UL)
 #define RCC_BASEADDR			(AHB1PERIPH_BASEADDR + 0x3800UL)
+
+
 
 /******peripheral register definition structures******/
 
@@ -121,6 +131,32 @@ typedef struct
 
 #define RCC				((RCC_RegDef_t*)RCC_BASEADDR)
 
+
+/*
+ * Clock Enable Macros for GPIOx peripherals
+ */
+
+#define GPIOA_PCLK_EN()	(RCC->AHB1ENR |= (0x1UL << 0U))
+#define GPIOB_PCLK_EN()	(RCC->AHB1ENR |= (0x1UL << 1U))
+#define GPIOC_PCLK_EN()	(RCC->AHB1ENR |= (0x1UL << 2U))
+#define GPIOD_PCLK_EN()	(RCC->AHB1ENR |= (0x1UL << 3U))
+#define GPIOE_PCLK_EN()	(RCC->AHB1ENR |= (0x1UL << 4U))
+#define GPIOF_PCLK_EN()	(RCC->AHB1ENR |= (0x1UL << 5U))
+#define GPIOG_PCLK_EN()	(RCC->AHB1ENR |= (0x1UL << 6U))
+#define GPIOH_PCLK_EN()	(RCC->AHB1ENR |= (0x1UL << 7U))
+
+/*
+ * Clock Disable Macros for GPIOx peripherals
+ */
+
+#define GPIOA_PCLK_DI()	(RCC->AHB1ENR &= ~(0x1UL << 0U))
+#define GPIOB_PCLK_DI()	(RCC->AHB1ENR &= ~(0x1UL << 1U))
+#define GPIOC_PCLK_DI()	(RCC->AHB1ENR &= ~(0x1UL << 2U))
+#define GPIOD_PCLK_DI()	(RCC->AHB1ENR &= ~(0x1UL << 3U))
+#define GPIOE_PCLK_DI()	(RCC->AHB1ENR &= ~(0x1UL << 4U))
+#define GPIOF_PCLK_DI()	(RCC->AHB1ENR &= ~(0x1UL << 5U))
+#define GPIOG_PCLK_DI()	(RCC->AHB1ENR &= ~(0x1UL << 6U))
+#define GPIOH_PCLK_DI()	(RCC->AHB1ENR &= ~(0x1UL << 7U))
 #include "GPIO.h"
 
 #endif
