@@ -23,9 +23,35 @@
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
+
+void delayMillis(uint16_t delay);		//delay function
+
 int main(void)
 {
-    /* Loop forever */
-	for(;;);
+	//Clock activate for GPIOA AHB1ENR
+	RCC->AHB1ENR |= 0x00000001U;
 
+	GPIOA->MODER &= (0xA8000000U);
+	GPIOA->MODER |= 0x00000001;
+	GPIOA->PUPDR |= 0x00000010;
+
+	while(1)
+	{
+		GPIOA->ODR |= 0x00000001 ;
+		delayMillis(500);
+		GPIOA->ODR &= 0x00000000;
+		delayMillis(500);
+	}
+}
+
+void delayMillis(uint16_t delay)
+{
+	uint16_t i = 0;
+	for(;delay>0; --delay)
+	{
+		for(i = 0; i<1245;++i)
+		{
+			;
+		}
+	}
 }
