@@ -31,7 +31,7 @@ int main(void)
 {
 	GPIO_Handle_t rectangle;
 	rectangle.pGPIOx = GPIOA;
-	rectangle.GPIO_PinConfig.GPIO_PinMode 			= GPIO_PIN0;
+	rectangle.GPIO_PinConfig.GPIO_PinNumber 		= GPIO_PIN0;
 	rectangle.GPIO_PinConfig.GPIO_PinMode 			= GPIO_MODE_OUT;
 	rectangle.GPIO_PinConfig.GPIO_PinSpeed 			= GPIO_SPEED_FAST;
 	rectangle.GPIO_PinConfig.GPIO_PinOPType 		= GPIO_OPTYPE_PP;
@@ -39,16 +39,14 @@ int main(void)
 
 	//Clock activate for GPIOA AHB1ENR
 	GPIO_PCLK(GPIOA,ENABLE);
-
-	GPIOA->MODER &= (0xA8000000U);
-	GPIOA->MODER |= 0x00000001;
-	GPIOA->PUPDR |= 0x00000010;
-
+	//GPIO Init
+	GPIO_Init(&rectangle);
 	while(1)
 	{
-		GPIOA->ODR |= 0x00000001 ;
+		//GPIO_Write(GPIOA, GPIO_PIN0, Value);
+		GPIO_Write(&rectangle, GPIO_PIN_SET);
 		delayMillis(500);
-		GPIOA->ODR &= 0x00000000;
+		GPIO_Write(&rectangle, GPIO_PIN_RESET);
 		delayMillis(500);
 	}
 }

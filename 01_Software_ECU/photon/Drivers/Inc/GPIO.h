@@ -28,7 +28,7 @@ typedef struct
 }GPIO_Handle_t;
 
 /*
- * GPIO_PINNUmbers
+ * GPIO_PINNumbers
  */
 #define GPIO_PIN0			0
 #define GPIO_PIN1			1
@@ -82,6 +82,9 @@ typedef struct
  ****************************************************************************************************************/
 
 void GPIO_PCLK(GPIO_RegDef_t *pGPIOx, uint8_t status);
-
+void GPIO_Init(GPIO_Handle_t *pGPIOHandle);
+void GPIO_DeInit(GPIO_RegDef_t *pGPIOx);
+uint8_t GPIO_Read(GPIO_RegDef_t *pGPIOx, uint8_t PinNumber);
+void GPIO_Write(GPIO_Handle_t *pGPIOHandle, uint8_t Value);
 
 #endif /* DRIVERS_INC_GPIO_H_ */
