@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include "GPIO.h"
 
+
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
@@ -37,18 +38,64 @@ int main(void)
 	rectangle.GPIO_PinConfig.GPIO_PinOPType 		= GPIO_OPTYPE_PP;
 	rectangle.GPIO_PinConfig.GPIO_PinPuPdControl 	= GPIO_NO_PUPD;
 
+	GPIO_Handle_t LED;
+	LED.pGPIOx = GPIOA;
+	LED.GPIO_PinConfig.GPIO_PinNumber 				= GPIO_PIN5;
+	LED.GPIO_PinConfig.GPIO_PinMode 				= GPIO_MODE_OUT;
+	LED.GPIO_PinConfig.GPIO_PinSpeed 				= GPIO_SPEED_LOW;
+	LED.GPIO_PinConfig.GPIO_PinOPType 				= GPIO_OPTYPE_PP;
+	LED.GPIO_PinConfig.GPIO_PinPuPdControl 			= GPIO_NO_PUPD;
+
+	GPIO_Handle_t Button;
+	Button.pGPIOx = GPIOC;
+	Button.GPIO_PinConfig.GPIO_PinNumber 			= GPIO_PIN13;
+	Button.GPIO_PinConfig.GPIO_PinMode 				= GPIO_MODE_IT_FT;
+	Button.GPIO_PinConfig.GPIO_PinSpeed 			= GPIO_SPEED_FAST;
+	Button.GPIO_PinConfig.GPIO_PinOPType 			= GPIO_OPTYPE_PP;
+	Button.GPIO_PinConfig.GPIO_PinPuPdControl 		= GPIO_NO_PUPD;
+
 	//Clock activate for GPIOA AHB1ENR
 	GPIO_PCLK(GPIOA,ENABLE);
+	GPIO_PCLK(GPIOC,ENABLE);
 	//GPIO Init
 	GPIO_Init(&rectangle);
-	while(1)
+	GPIO_Init(&LED);
+	GPIO_Init(&Button);
+
+	/*while(1)
 	{
 		//GPIO_Write(GPIOA, GPIO_PIN0, Value);
-		GPIO_Write(&rectangle, GPIO_PIN_SET);
-		delayMillis(500);
-		GPIO_Write(&rectangle, GPIO_PIN_RESET);
-		delayMillis(500);
+		//GPIO_Write(&rectangle, GPIO_PIN_SET);
+		//delayMillis(500);
+		//GPIO_Write(&rectangle, GPIO_PIN_RESET);
+		//delayMillis(500);
+
+		if(!GPIO_Read(&Button))
+		{
+			GPIO_Write(&LED, GPIO_PIN_SET);
+		}else
+		{
+			GPIO_Write(&LED, GPIO_PIN_RESET);
+		}
+	}*/
+
+	GPIO_IRQPriorityConfig(IRQ_NO_EXTI15_10, NVIC_IRQ_PRI15);
+	GPIO_IRQInterruptConfig(IRQ_NO_EXTI15_10, ENABLE);
+
+	int a =2;
+	while(1)
+	{
+		if (a==2);
+			a=1;
+
 	}
+	return 0;
+}
+
+void EXTI15_10_IRQHandler(void)
+{
+	GPIO_Toggle(GPIOA, GPIO_PIN5);
+	GPIO_IRQHandling(GPIO_PIN13);
 }
 
 void delayMillis(uint16_t delay)

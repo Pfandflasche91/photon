@@ -54,6 +54,9 @@ typedef struct
 #define GPIO_MODE_OUT		1
 #define GPIO_MODE_ALTFN		2
 #define GPIO_MODE_ANALOG	3
+#define GPIO_MODE_IT_FT		4
+#define GPIO_MODE_IT_RT		5
+#define GPIO_MODE_IT_RFT	6
 
 /*
  * GPIO_PinSpeed
@@ -84,7 +87,15 @@ typedef struct
 void GPIO_PCLK(GPIO_RegDef_t *pGPIOx, uint8_t status);
 void GPIO_Init(GPIO_Handle_t *pGPIOHandle);
 void GPIO_DeInit(GPIO_RegDef_t *pGPIOx);
-uint8_t GPIO_Read(GPIO_RegDef_t *pGPIOx, uint8_t PinNumber);
+uint8_t GPIO_Read(GPIO_Handle_t *pGPIOHandle);
 void GPIO_Write(GPIO_Handle_t *pGPIOHandle, uint8_t Value);
+void GPIO_Toggle(GPIO_RegDef_t *pGPIOx, uint8_t PinNumber);
+/*
+ * IRQ Configuration and ISR handling
+ */
+void GPIO_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDi);
+void GPIO_IRQHandling(uint8_t PinNumber);
+void GPIO_IRQPriorityConfig(uint8_t IRQNumber,uint32_t IRQPriority);
+
 
 #endif /* DRIVERS_INC_GPIO_H_ */

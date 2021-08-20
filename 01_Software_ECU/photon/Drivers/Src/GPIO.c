@@ -85,7 +85,28 @@ void GPIO_Init(GPIO_Handle_t *pGPIOHandle){
 		temp=0;
 	}else
 	{
+		if(pGPIOHandle->GPIO_PinConfig.GPIO_PinMode==GPIO_MODE_IT_FT)
+		{
+			EXTI->RTSR &= (1 << pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
+			EXTI->FTSR |= (1 << pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
 
+		}else if(pGPIOHandle->GPIO_PinConfig.GPIO_PinMode==GPIO_MODE_IT_RT)
+		{
+			EXTI->FTSR &= (1 << pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
+			EXTI->RTSR |= (1 << pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
+
+		}else if(pGPIOHandle->GPIO_PinConfig.GPIO_PinMode==GPIO_MODE_IT_RFT)
+		{
+			EXTI->FTSR |= (1 << pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
+			EXTI->RTSR |= (1 << pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
+		}
+
+		uint8_t temp1 = pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber / 4 ;
+		uint8_t temp2 = pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber % 4;
+		uint8_t portcode = GPIO_BASEADDR_TO_CODE(pGPIOHandle->pGPIOx);
+		SYSCFG_PCLK_EN();
+		SYSCFG->EXTICRx[temp1] = portcode << ( temp2 * 4);
+		EXTI->IMR |= (1 << pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
 	}
 	//2. configure the speed
 	temp = (pGPIOHandle->GPIO_PinConfig.GPIO_PinSpeed << (2 * pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber));
@@ -146,9 +167,9 @@ void GPIO_DeInit(GPIO_RegDef_t *pGPIOx)
  * @Note				-
  */
 
-uint8_t GPIO_Read(GPIO_RegDef_t *pGPIOx, uint8_t PinNumber)
+uint8_t GPIO_Read(GPIO_Handle_t *pGPIOHandle)
 {
-	return (uint8_t)((pGPIOx->IDR >> PinNumber) & 0x00000001);
+	return (uint8_t)((pGPIOHandle->pGPIOx->IDR >> pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber) & 0x00000001);
 }
 
 /*******************************************************************
@@ -169,3 +190,103 @@ void GPIO_Write(GPIO_Handle_t *pGPIOHandle, uint8_t Value)
 		pGPIOHandle->pGPIOx->ODR &= ~(1 << pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
 	}
 }
+
+/*******************************************************************
+ * @function			- GPIO_Toggle
+ * @brief				-
+ * @param[in]			-
+ * @return				-
+ * @Note				-
+ */
+
+void GPIO_Toggle(GPIO_RegDef_t *pGPIOx, uint8_t PinNumber)
+{
+	pGPIOx->ODR ^= (1 << PinNumber);
+}
+
+/*
+ * IRQ Configuration and ISR handling
+ */
+
+/*******************************************************************
+ * @function			- GPIO_IRQInterruptConfig
+ * @brief				-
+ * @param[in]			-
+ * @return				-
+ * @Note				-
+ */
+void GPIO_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDi)
+{
+	if(EnorDi == ENABLE)
+	{
+		if(IRQNumber <= 31)
+		{
+			//program ISER0 register
+			*NVIC_ISER0 |= ( 1 << IRQNumber );
+		}
+		else if(IRQNumber > 31 && IRQNumber < 64 ) //32 to 63
+		{
+			//program ISER1 register
+			*NVIC_ISER1 |= ( 1 << (IRQNumber % 32) );
+		}
+		else if(IRQNumber >= 64 && IRQNumber < 96 )
+		{
+			//program ISER2 register //64 to 95
+			*NVIC_ISER2 |= ( 1 << (IRQNumber % 64) );
+		}
+	}else
+	{
+		if(IRQNumber <= 31)
+		{
+			//program ICER0 register
+			*NVIC_ICER0 |= ( 1 << IRQNumber );
+		}
+		else if(IRQNumber > 31 && IRQNumber < 64 )
+		{
+			//program ICER1 register
+			*NVIC_ICER1 |= ( 1 << (IRQNumber % 32) );
+		}
+		else if(IRQNumber >= 64 && IRQNumber < 96 )
+		{
+			//program ICER2 register
+			*NVIC_ICER2 |= ( 1 << (IRQNumber % 64) );
+		}
+	}
+}
+
+/*******************************************************************
+ * @function			- GPIO_IRQPriorityConfig
+ * @brief				-
+ * @param[in]			-
+ * @return				-
+ * @Note				-
+ */
+
+void GPIO_IRQPriorityConfig(uint8_t IRQNumber,uint32_t IRQPriority)
+{
+	//1. first lets find out the ipr register
+	uint8_t iprx = IRQNumber / 4;
+	uint8_t iprx_section  = IRQNumber %4 ;
+
+	uint8_t shift_amount = ( 8 * iprx_section) + ( 8 - NO_PR_BITS_IMPLEMENTED) ;
+
+	*(  NVIC_PR_BASE_ADDR + (iprx*4) ) |=  ( IRQPriority << shift_amount );
+
+}
+/*******************************************************************
+ * @function			- GPIO_IRQHandling
+ * @brief				-
+ * @param[in]			-
+ * @return				-
+ * @Note				-
+ */
+void GPIO_IRQHandling(uint8_t PinNumber)
+{
+	//clear the exti pr register corresponding to the pin number
+	if(EXTI->PR & ( 1 << PinNumber))
+	{
+		//clear
+		EXTI->PR |= ( 1 << PinNumber);
+	}
+}
+
