@@ -20,6 +20,7 @@
 #include "stm32f446re.h"
 #include <stdint.h>
 #include "GPIO.h"
+#include "timer.h"
 
 
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
@@ -28,8 +29,14 @@
 
 
 void delayMillis(uint16_t delay);		//delay function
+void SysTick_Handler(void);
+
+uint16_t tick = 0;
 int main(void)
 {
+	uint32_t SystemcoreClock = SystemCoreClockUpdate();
+	SysTick_Config(SystemcoreClock / 100000);
+
 	GPIO_Handle_t rectangle;
 	rectangle.pGPIOx = GPIOA;
 	rectangle.GPIO_PinConfig.GPIO_PinNumber 		= GPIO_PIN0;
@@ -62,6 +69,7 @@ int main(void)
 	GPIO_Init(&LED);
 	GPIO_Init(&Button);
 
+
 	/*while(1)
 	{
 		//GPIO_Write(GPIOA, GPIO_PIN0, Value);
@@ -82,12 +90,20 @@ int main(void)
 	GPIO_IRQPriorityConfig(IRQ_NO_EXTI15_10, NVIC_IRQ_PRI15);
 	GPIO_IRQInterruptConfig(IRQ_NO_EXTI15_10, ENABLE);
 
-	int a =2;
+	uint16_t test = 0;
 	while(1)
 	{
-		if (a==2);
-			a=1;
+		test = test +1;
+		if (test >500)
+		{
+			test = 0;
+		}
+		if (tick > 1)
+		{
+			GPIO_Toggle(GPIOA, GPIO_PIN0);
+			tick=0;
 
+		}
 	}
 	return 0;
 }
@@ -96,6 +112,11 @@ void EXTI15_10_IRQHandler(void)
 {
 	GPIO_Toggle(GPIOA, GPIO_PIN5);
 	GPIO_IRQHandling(GPIO_PIN13);
+}
+
+void SysTick_Handler(void)
+{
+	++tick;
 }
 
 void delayMillis(uint16_t delay)
