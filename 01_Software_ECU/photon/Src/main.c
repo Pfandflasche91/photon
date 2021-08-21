@@ -45,6 +45,14 @@ int main(void)
 	rectangle.GPIO_PinConfig.GPIO_PinOPType 		= GPIO_OPTYPE_PP;
 	rectangle.GPIO_PinConfig.GPIO_PinPuPdControl 	= GPIO_NO_PUPD;
 
+	GPIO_Handle_t rectangle_two;
+	rectangle_two.pGPIOx = GPIOA;
+	rectangle_two.GPIO_PinConfig.GPIO_PinNumber 		= GPIO_PIN0;
+	rectangle_two.GPIO_PinConfig.GPIO_PinMode 			= GPIO_MODE_OUT;
+	rectangle_two.GPIO_PinConfig.GPIO_PinSpeed 			= GPIO_SPEED_FAST;
+	rectangle_two.GPIO_PinConfig.GPIO_PinOPType 		= GPIO_OPTYPE_PP;
+	rectangle_two.GPIO_PinConfig.GPIO_PinPuPdControl 	= GPIO_NO_PUPD;
+
 	GPIO_Handle_t LED;
 	LED.pGPIOx = GPIOA;
 	LED.GPIO_PinConfig.GPIO_PinNumber 				= GPIO_PIN5;
@@ -66,6 +74,7 @@ int main(void)
 	GPIO_PCLK(GPIOC,ENABLE);
 	//GPIO Init
 	GPIO_Init(&rectangle);
+	GPIO_Init(&rectangle_two);
 	GPIO_Init(&LED);
 	GPIO_Init(&Button);
 
@@ -97,6 +106,7 @@ int main(void)
 		if (test >500)
 		{
 			test = 0;
+			GPIO_Toggle(GPIOA, GPIO_PIN1);
 		}
 		if (tick > 1)
 		{
