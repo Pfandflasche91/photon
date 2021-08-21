@@ -35,7 +35,7 @@ uint16_t tick = 0;
 int main(void)
 {
 	uint32_t SystemcoreClock = SystemCoreClockUpdate();
-	SysTick_Config(SystemcoreClock / 100000);
+	SysTick_Config(SystemcoreClock / 1000);
 
 	GPIO_Handle_t rectangle;
 	rectangle.pGPIOx = GPIOA;
