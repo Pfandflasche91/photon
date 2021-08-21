@@ -53,6 +53,9 @@
 #define GPIO_PIN_SET 	SET
 #define GPIO_PIN_RESET	RESET
 
+#define true 			ENABLE
+#define false			DISABLE
+
 #define FLASH_BASEADDR			0x08000000U
 #define SRAM1_BASEADDR			0x20000000U
 
