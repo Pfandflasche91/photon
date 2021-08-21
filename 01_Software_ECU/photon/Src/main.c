@@ -17,178 +17,128 @@
  ******************************************************************************
  */
 
-#include "stm32f446re.h"
-#include <stdint.h>
-#include "GPIO.h"
-#include "timer.h"
-
-
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
+#include <stdint.h>
+#include <stdbool.h>
 
-void delayMillis(uint16_t delay);		//delay function
-void SysTick_Handler(void);
+#include <stm32f4xx.h>
+#include <mcalGPIO.h>
 
 uint32_t getUptime(void);
-void UPDATETimers(void);
-uint16_t tick = 0UL;
+void     UPDATETimers(void);
+void     SysTick_Handler(void);
 
-uint8_t pin0TimerStarted = false;
-uint8_t pin1TimerStarted = false;
+uint32_t tick = 0UL;
+bool     pin0TimerStarted = false;
+bool     pin1TimerStarted = false;
 uint32_t pin0Timer = 0UL;
 uint32_t pin1Timer = 0UL;
-uint8_t timerCorrected = false;
-#define SYSTICK_MAX (2000)
+bool     timerCorrected = false;
+bool     timerTrigger = false;
 
+#define  SYSTICK_MAX  (2000)
 
 int main(void)
 {
-	uint32_t SystemcoreClock = SystemCoreClockUpdate();
-	SysTick_Config(SystemcoreClock / 1000);
-
-	GPIO_Handle_t rectangle;
-	rectangle.pGPIOx = GPIOA;
-	rectangle.GPIO_PinConfig.GPIO_PinNumber 		= GPIO_PIN0;
-	rectangle.GPIO_PinConfig.GPIO_PinMode 			= GPIO_MODE_OUT;
-	rectangle.GPIO_PinConfig.GPIO_PinSpeed 			= GPIO_SPEED_FAST;
-	rectangle.GPIO_PinConfig.GPIO_PinOPType 		= GPIO_OPTYPE_PP;
-	rectangle.GPIO_PinConfig.GPIO_PinPuPdControl 	= GPIO_NO_PUPD;
-
-	GPIO_Handle_t rectangle_two;
-	rectangle_two.pGPIOx = GPIOA;
-	rectangle_two.GPIO_PinConfig.GPIO_PinNumber 		= GPIO_PIN1;
-	rectangle_two.GPIO_PinConfig.GPIO_PinMode 			= GPIO_MODE_OUT;
-	rectangle_two.GPIO_PinConfig.GPIO_PinSpeed 			= GPIO_SPEED_FAST;
-	rectangle_two.GPIO_PinConfig.GPIO_PinOPType 		= GPIO_OPTYPE_PP;
-	rectangle_two.GPIO_PinConfig.GPIO_PinPuPdControl 	= GPIO_NO_PUPD;
-
-	GPIO_Handle_t LED;
-	LED.pGPIOx = GPIOA;
-	LED.GPIO_PinConfig.GPIO_PinNumber 				= GPIO_PIN5;
-	LED.GPIO_PinConfig.GPIO_PinMode 				= GPIO_MODE_OUT;
-	LED.GPIO_PinConfig.GPIO_PinSpeed 				= GPIO_SPEED_LOW;
-	LED.GPIO_PinConfig.GPIO_PinOPType 				= GPIO_OPTYPE_PP;
-	LED.GPIO_PinConfig.GPIO_PinPuPdControl 			= GPIO_NO_PUPD;
-
-	GPIO_Handle_t Button;
-	Button.pGPIOx = GPIOC;
-	Button.GPIO_PinConfig.GPIO_PinNumber 			= GPIO_PIN13;
-	Button.GPIO_PinConfig.GPIO_PinMode 				= GPIO_MODE_IT_FT;
-	Button.GPIO_PinConfig.GPIO_PinSpeed 			= GPIO_SPEED_FAST;
-	Button.GPIO_PinConfig.GPIO_PinOPType 			= GPIO_OPTYPE_PP;
-	Button.GPIO_PinConfig.GPIO_PinPuPdControl 		= GPIO_NO_PUPD;
-
-	//Clock activate for GPIOA AHB1ENR
-	GPIO_PCLK(GPIOA,ENABLE);
-	GPIO_PCLK(GPIOC,ENABLE);
-	//GPIO Init
-	GPIO_Init(&rectangle);
-	GPIO_Init(&rectangle_two);
-	GPIO_Init(&LED);
-	GPIO_Init(&Button);
+	// Initialisierung des SysTick-Timers
+	SysTick_Config(SystemCoreClock / 1000);
+	SystemCoreClockUpdate();
 
 
-	/*while(1)
-	{
-		//GPIO_Write(GPIOA, GPIO_PIN0, Value);
-		//GPIO_Write(&rectangle, GPIO_PIN_SET);
-		//delayMillis(500);
-		//GPIO_Write(&rectangle, GPIO_PIN_RESET);
-		//delayMillis(500);
+    // Aktivierung des Bustaktes von GPIOA
+    gpioInitPort(GPIOA);
 
-		if(!GPIO_Read(&Button))
-		{
-			GPIO_Write(&LED, GPIO_PIN_SET);
-		}else
-		{
-			GPIO_Write(&LED, GPIO_PIN_RESET);
-		}
-	}*/
+    // Konfiguration: PA0
+    gpioSelectPinMode(GPIOA, PIN0, OUTPUT);
+    gpioSetOutputType(GPIOA, PIN0, PUSHPULL);
+    gpioSelectPushPullType(GPIOA, PIN0, PULLUP);
 
-	//GPIO_IRQPriorityConfig(IRQ_NO_EXTI15_10, NVIC_IRQ_PRI15);
-	//GPIO_IRQInterruptConfig(IRQ_NO_EXTI15_10, ENABLE);
+    // Konfiguration: PA1
+    gpioSelectPinMode(GPIOA, PIN1, OUTPUT);
+    gpioSetOutputType(GPIOA, PIN1, PUSHPULL);
+    gpioSelectPushPullType(GPIOA, PIN1, PULLUP);
 
-	while(1)
-	{
-		UPDATETimers();
+    while (1)
+    {
+    	UPDATETimers();
 
-		if (pin0TimerStarted == false)
-		{
-			pin0Timer = getUptime()+200;
-			pin0TimerStarted = true;
-		}
+    	// Wurde der Timer fuer Pin0 gestartet?
+    	if (pin0TimerStarted == false)
+    	{
+    		pin0Timer = getUptime() + 200; // Delay = 200 ms
+    		pin0TimerStarted = true;       // Verhindert, dass pin0Timer
+    		                               // vor seinem Ablauf neu gesetzt
+    		                               // wird.
+    	}
 
-		if(pin0TimerStarted == true && getUptime() > pin0Timer)
-		{
-			GPIO_Toggle(GPIOA, GPIO_PIN0);
-			pin0TimerStarted=false;
-		}
+    	// Wurde der Timer gestartet, wird geprueft, ob der Timer
+    	// abgelaufen ist.
+    	if (pin0TimerStarted == true && getUptime() > pin0Timer)
+    	{
+    		gpioTogglePin(GPIOA, PIN0);    // pin0Timer ist abgelaufen
+    		pin0TimerStarted = false;      // Erlauben, dass pin0Timer
+    		                               // neu geladen werden kann.
+    	}
 
-		if (pin1TimerStarted == false)
-		{
-			pin1Timer = getUptime()+400;
-			pin1TimerStarted = true;
-		}
+    	// Hier gelten die gleichen Kommentare wie fuer pin0Timer.
+    	if (pin1TimerStarted == false)
+    	{
+    		pin1Timer = getUptime() + 400;
+    		pin1TimerStarted = true;
+    	}
 
-		if(pin1TimerStarted == true && getUptime() > pin1Timer)
-		{
-			GPIO_Toggle(GPIOA, GPIO_PIN1);
-			pin1TimerStarted=false;
-		}
-
-		/*GPIO_Toggle(GPIOA, GPIO_PIN1);
-		if (tick > 1)
-		{
-			GPIO_Toggle(GPIOA, GPIO_PIN0);
-			tick=0;
-
-		}*/
-	}
-	return 0;
+    	if (pin1TimerStarted == true && getUptime() > pin1Timer)
+    	{
+    		gpioTogglePin(GPIOA, PIN1);
+    		pin1TimerStarted = false;
+    	}
+    }
 }
 
-void EXTI15_10_IRQHandler(void)
+/**
+ * @brief Interrupt-Service-Routine fuer den SysTick-Timer
+ */
+void SysTick_Handler (void)
 {
-	GPIO_Toggle(GPIOA, GPIO_PIN5);
-	GPIO_IRQHandling(GPIO_PIN13);
+    ++tick;
+
+    // Durch den folgenden Test erreichen wir, dass der SysTick-Timer
+    // beliebig lange laufen kann. Ein SysTick-Ueberlauf ist nun nicht
+    // mehr relevant.
+    if (tick > SYSTICK_MAX)
+    {
+    	tick = 0UL;
+    	timerCorrected = true;
+    }
 }
 
-void SysTick_Handler(void)
-{
-	++tick;
-
-	if(tick > SYSTICK_MAX)
-	{
-		tick = 0UL;
-		timerCorrected = true;
-	}
-}
-
+/**
+ * @brief Gibt den aktuellen Wert des Tick-Counters zurueck.
+ *
+ * @param[in]  none
+ * @param[out] tick : Der aktuelle Wert des Zaehlers
+ */
 uint32_t getUptime(void)
 {
 	return tick;
 }
+
+/**
+ * @brief Wurde der tick-Counter des SysTick-Timers korrigiert.
+ *
+ * @par   Die verwendeten Timer muessen korrigiert werden. Erfolgt
+ *        dies nicht, waere das Toggle-Timing der Pins nicht mehr
+ *        korrekt.
+ */
 void UPDATETimers(void)
 {
-	if (timerCorrected ==true)
+	if (timerCorrected == true)
 	{
 		pin0Timer -= SYSTICK_MAX;
 		pin1Timer -= SYSTICK_MAX;
 		timerCorrected = false;
 	}
 }
-void delayMillis(uint16_t delay)
-{
-	uint16_t i = 0;
-	for(;delay>0; --delay)
-	{
-		for(i = 0; i<1245;++i)
-		{
-			;
-		}
-	}
-}
-
-

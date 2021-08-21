@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cdtprojectproperties>
+<section name="org.eclipse.cdt.internal.ui.wizards.settingswizards.IncludePaths">
+<language name="s,S">
+
+</language>
+<language name="C Source File">
+<includepath>Inc</includepath>
+<includepath workspace_path="true">/MCAL/Inc</includepath>
+<includepath workspace_path="true">/CMSIS/Include</includepath>
+<includepath workspace_path="true">/CMSIS/Device/ST/STM32F4xx/Include</includepath>
+
+</language>
+<language name="Object File">
+
+</language>
+</section>
+<section name="org.eclipse.cdt.internal.ui.wizards.settingswizards.Macros">
+<language name="s,S">
+
+</language>
+<language name="C Source File">
+<macro>
+<name>STM32</name><value/>
+</macro>
+<macro>
+<name>STM32F4</name><value/>
+</macro>
+<macro>
+<name>STM32F446RETx</name><value/>
+</macro>
+<macro>
+<name>DEBUG</name><value/>
+</macro>
+
+</language>
+<language name="Object File">
+
+</language>
+</section>
+</cdtprojectproperties>
